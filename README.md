@@ -1,5 +1,5 @@
 # kaggle_challenge_LCD
-'''python
+```python
 def hello(name):
   print('hello! ', name)
-'''
+```
