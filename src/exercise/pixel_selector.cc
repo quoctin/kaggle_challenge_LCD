@@ -8,6 +8,7 @@ using namespace tensorflow;
 REGISTER_OP("PixelSelector")
     .Input("in: int16")
     .Input("coord: float32")
+    .Input("stride: int16")
     .Output("out: int16")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c)
     {
@@ -21,11 +22,17 @@ REGISTER_OP("PixelSelector")
     }) // Set the shape property for the output tensor
     .Doc(R"doc(
          Replicating the 4D input tensor in a 5D tensor.
+         
          Input 1 has the following format
             [batch_size, depth, width, height]
+         
          Input 2 contains the coordinate of points and
          has size
             [num_points, 3]
+         
+         Input 3 contains the strides, namely
+            [1, stride_depth, stride_width, stride_height]
+         
          Output has the following format
             [batch_size, depth, width, height, pixels]
     )doc");
@@ -39,6 +46,7 @@ class PixelSelectorOp : public OpKernel {
         // Grab the input tensor
         const Tensor& input_tensor = context->input(0);
         const Tensor& input_tensor1 = context->input(1);
+        const Tensor& input_tensor2 = context->input(2);
 
         int batch = input_tensor.shape().dim_size(0);
         int depth = input_tensor.shape().dim_size(1);
@@ -48,7 +56,14 @@ class PixelSelectorOp : public OpKernel {
         int pixels = input_tensor1.shape().dim_size(0);
         int num_coord = input_tensor1.shape().dim_size(1);
         auto input1 = input_tensor1.shaped<float,2>({pixels,num_coord}); // Conversion to Eigen::Tensor
+        auto input2 = input_tensor2.flat<int16>(); // Conversion to Eigen::Tensor
+        int stride_depth = input2(0);
+        int stride_width = input2(1);
+        int stride_height = input2(2);
         
+        depth = int(depth/stride_depth);
+        width = int(width/stride_width);
+        height = int(height/stride_height);
         
         // Create an output tensor
         Tensor* output_tensor = NULL;
@@ -69,7 +84,7 @@ class PixelSelectorOp : public OpKernel {
                     {
                         for (int m = 0; m < pixels; m++)
                         {
-                            output(i,j,k,l,m) = input(i,j,k,l);
+                            output(i,j,k,l,m) = input(i,j*stride_depth,k*stride_width,l*stride_height);
                         }
                     }
                 }

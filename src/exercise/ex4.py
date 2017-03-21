@@ -46,7 +46,8 @@ with tf.Session() as sess:
 
     # using library
     b = tf.constant([[1,1,1],[2,2,2]], tf.float32) # Coordinate of points
-    a = select_module.pixel_selector(patient,b)
+    stride = tf.constant([1,5,5,5], tf.int16)
+    a = select_module.pixel_selector(patient,b,stride)
     sess.run(a, feed_dict={data: patient})
     print('Shape of the output tensor {0}'.format(a.shape))
 
