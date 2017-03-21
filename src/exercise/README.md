@@ -36,3 +36,14 @@ output = replicate_module.replicate_data(input1,input2)
 
 ## Ex 4
 Pixel selector
+```python
+import tensor flow as tf
+replicate_module = tf.load_op_library('/Path/to/pixel_selector.so')
+...
+output = replicate_module.pixel_selector(input, coord, strides)
+```
+**input** is a 4D tensor of size `[batch,depth,width,height]`
+**coord** is a 2D tensor of size `[num_points,3]` and it contains the coordinates of points of interest
+**strides** is a 1D vector, namely `[1,stide_depth,stride_width,stride_height]`
+**output** is a 5D tensor of size `[batch,depth,width,height,num_points]`
+
