@@ -52,7 +52,7 @@ output = replicate_module.pixel_selector(input, coord, strides)
 Inputs:
 **input** is a 4D tensor of size `[batch,depth,width,height]`
 **coord** is a 2D tensor of size `[num_points,3]` and it contains the coordinates of points of interest
-**strides** is a 1D vector, namely `[1,stide_depth,stride_width,stride_height]`
+**strides** is a 1D vector, namely `[1,stride_depth,stride_width,stride_height]`
 
 Outputs:
 **output** is a 5D tensor of size `[batch,depth,width,height,num_points]`
