@@ -31,9 +31,10 @@ data = tf.placeholder(tf.int16, [None,114,300,300])
 
 with tf.Session() as sess:
 
+
     patient = np.empty((0, 114, 300, 300))
     temp = np.empty((1, 114, 300, 300))
-
+    
     # create dataset of patients and store as a 4D numpy array
     # [batch_size, depth, width, height]
     print('TRAINING DATA')
@@ -45,16 +46,18 @@ with tf.Session() as sess:
         f.close()
 
     # using library
-    b = tf.constant([[1,1,1],[2,2,2]], tf.float32) # Coordinate of points
-    stride = tf.constant([1,5,5,5], tf.int16)
-    a = select_module.pixel_selector(patient,b,stride)
+    coord = tf.constant([[0.5,10.4,0.2],[0,-30,0],[100,100,100],[0,0,0]], tf.float32) # Coordinate of points
+stride = tf.constant([1,2,2,2], tf.int16) # Strides
+    a = select_module.pixel_selector(patient,coord,stride)
     sess.run(a, feed_dict={data: patient})
-    print('Shape of the output tensor {0}'.format(a.shape))
 
     # show results
-    for i in range(0,patient.shape[0]-1):
+    b = np.asarray(a.eval())
+    print(b.shape)
+    print('RESULTS')
+    for i in range(0,patient.shape[0]):
         print('Patient {0}'.format(i))
         # show only the first two slices of each patient
-        for j in range(0,2):
-            plt.imshow(a[i,j,:,:,1].eval(), cmap='gray')
+        for j in [0,10]:
+            plt.imshow(b[i,j,:,:,0], cmap='gray')
             plt.show()

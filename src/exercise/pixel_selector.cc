@@ -1,7 +1,6 @@
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/shape_inference.h"
 #include "tensorflow/core/framework/op_kernel.h"
-#include <iostream>
 
 using namespace tensorflow;
 
@@ -10,7 +9,7 @@ REGISTER_OP("PixelSelector")
     .Input("coord: float32")
     .Input("stride: int16")
     .Output("out: int16")
-    .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c)
+    /**.SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c)
     {
         ::tensorflow::shape_inference::ShapeHandle out;
         ::tensorflow::shape_inference::ShapeHandle output;
@@ -19,7 +18,7 @@ REGISTER_OP("PixelSelector")
         TF_RETURN_IF_ERROR(c->ReplaceDim(out,4,dim,&output));
         c->set_output(0,output);
         return Status::OK();
-    }) // Set the shape property for the output tensor
+    }) // Set the shape property for the output tensor**/
     .Doc(R"doc(
          Replicating the 4D input tensor in a 5D tensor.
          
@@ -57,13 +56,13 @@ class PixelSelectorOp : public OpKernel {
         int num_coord = input_tensor1.shape().dim_size(1);
         auto input1 = input_tensor1.shaped<float,2>({pixels,num_coord}); // Conversion to Eigen::Tensor
         auto input2 = input_tensor2.flat<int16>(); // Conversion to Eigen::Tensor
-        int stride_depth = input2(0);
-        int stride_width = input2(1);
-        int stride_height = input2(2);
+        int stride_depth = input2(1);
+        int stride_width = input2(2);
+        int stride_height = input2(3);
         
-        depth = int(depth/stride_depth);
-        width = int(width/stride_width);
-        height = int(height/stride_height);
+        depth = (int) depth/stride_depth;
+        width = (int) width/stride_width;
+        height = (int) height/stride_height;
         
         // Create an output tensor
         Tensor* output_tensor = NULL;
@@ -84,7 +83,24 @@ class PixelSelectorOp : public OpKernel {
                     {
                         for (int m = 0; m < pixels; m++)
                         {
-                            output(i,j,k,l,m) = input(i,j*stride_depth,k*stride_width,l*stride_height);
+                            int tmp_j = j*stride_depth + ((int) input1(m,0));
+                            int tmp_k = k*stride_width + ((int) input1(m,1));
+                            int tmp_l = l*stride_height + ((int) input1(m,2));
+                            //std::cout << "Before: " << tmp_j << " " << tmp_k << " " << tmp_l << std::endl;
+                            if (tmp_j < 0)
+                                tmp_j = 0;
+                            if (tmp_j >= depth*stride_depth)
+                                tmp_j = depth*stride_depth-1;
+                            if (tmp_k < 0)
+                                tmp_k = 0;
+                            if (tmp_k >= width*stride_width)
+                                tmp_k = width*stride_width-1;
+                            if (tmp_l < 0)
+                                tmp_l = 0;
+                            if (tmp_l >= height*stride_height)
+                                tmp_l = height*stride_height-1;
+                            //std::cout << "After: " << tmp_j << " " << tmp_k << " " << tmp_l << std::endl;
+                            output(i,j,k,l,m) = input(i,tmp_j,tmp_k,tmp_l);
                         }
                     }
                 }
