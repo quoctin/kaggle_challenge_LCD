@@ -18,8 +18,10 @@ REGISTER_OP("ReplicateData")
     }) // Set the shape property for the output tensor
     .Doc(R"doc(
          Replicating the 4D input tensor in a 5D tensor.
-         Input has the following format
+         Input 1 has the following format
             [batch_size, depth, width, height]
+         Input 2 is a constant defining the number of replicas
+         (called pixels here)
          Output has the following format
             [batch_size, depth, width, height, pixels]
     )doc");
