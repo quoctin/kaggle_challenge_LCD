@@ -1,23 +1,12 @@
 import os
 import h5py
 import csv
+import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow.python as ops
-import matplotlib.pyplot as plt
 import numpy as np
 
 select_module = tf.load_op_library('/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/src/exercise/pixel_selector.so')
-
-# declare some variables
-INPUT_FOLDER = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/normalized_data'
-LABEL_FILE = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/stage1_labels.csv'
-
-SLICES = 198
-NUM_POINTS = 5
-WIDTH = 300
-HEIGHT = 300
-STRIDE = [1,2,2,2]
-
 
 @ops.RegisterGradient("PixelSelector")
 def _pixel_selector_grad(op, grad):
@@ -32,30 +21,46 @@ def _pixel_selector_grad(op, grad):
         """
     input = op.inputs[0]
     coord = op.inputs[1]
+    POINTS = coord.shape[0]
     strides = op.inputs[2]
-    shape = ops.shape(coord)
-    coord_grad = ops.zeros_like(shape)
+    coord_grad = ops.zeros_like((POINTS,3), tf.float32)
     back_grad = ops.reshape(grad,[-1])
-    
-    for i in range(0, NUM_POINTS):
+    coord_grad_tmp = np.zeros((POINTS,3), np.float32)
+    for i in range(0, POINTS):
         for j in range(0, 3):
-            coord_tmp = np.zeros((NUM_POINTS,3))
+            coord_tmp = np.zeros((POINTS,3), np.float32)
             coord_tmp[i,j] = 1.0
             coord_tmp = coord + coord_tmp
             tmp_1 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
-            coord_tmp = np.zeros((NUM_POINTS,3))
+            coord_tmp = np.zeros((POINTS,3), np.float32)
             coord_tmp[i,j] = -1.0
             coord_tmp = coord + coord_tmp
             tmp_2 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
             tmp = ops.subtract(tmp_1,tmp_2)
             tmp = ops.divide(tmp,2)
             tmp = ops.multiply(tmp,back_grad)
-            tmp_3 = np.zeros((NUM_POINTS,3)) # TO CHECK
-            tmp_3[i,j] = ops.reduce_sum(tmp) # TO CHECK
-            coord_grad = coord_grad + tmp_3 # TO CHECK
+            tmp_3 = np.zeros((POINTS,3), np.float32)
+            tmp_3[i,j] = 1.0
+            coord_grad_tmp = coord_grad_tmp + tmp_3*ops.reduce_sum(tmp)
 
+    coord_grad = coord_grad_tmp
+    
     return [None,coord_grad,None]
 
+
+# declare some variables
+INPUT_FOLDER = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/normalized_data'
+LABEL_FILE = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/stage1_labels.csv'
+
+SLICES = 198
+NUM_POINTS = 5
+WIDTH = 300
+HEIGHT = 300
+STRIDE = [1,2,2,2]
+
+LEARNING_RATE = 0.001
+MOMENTUM = 0.9
+EPOCHS = 50
 
 # load labels to a dictionary
 # 362 tumors out of 1397 cases
@@ -105,29 +110,31 @@ initial_kernel = tf.truncated_normal([1,1,1,NUM_POINTS,1], stddev=0.1)
 kernel = tf.Variable(initial_kernel)
 initial_bias = tf.random_normal([1])
 bias = tf.Variable(initial_bias)
-init_op = tf.global_variables_initializer()
 
 # NETWORK
 x = select_module.pixel_selector(data,coord,stride)
 conv = tf.nn.conv3d(x,kernel,[1,1,1,1,1],"SAME")
 conv1 = conv + bias
 out = tf.reduce_sum(conv1,[1,2,3])
-print(y.shape)
-print(out.shape)
 entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=out)
 loss = tf.reduce_mean(entropy)
-optimizer = tf.train.AdamOptimizer().minimize(loss)
-
+global_step = tf.Variable(0, dtype=tf.int32, trainable=False)
+optimizer = tf.train.AdamOptimizer().minimize(loss,\
+            global_step=global_step)
 
 with tf.Session() as sess:
-    sess.run(init_op)
-    _, loss_batch = sess.run([optimizer, loss], feed_dict={data: patient, y: label})
-    
+    sess.run(tf.global_variables_initializer())
+    print('TRAINING')
+    for index in range(0, EPOCHS-1):
+        _, loss_batch = sess.run([optimizer, loss], feed_dict={data: patient, y: label})
+        print('Iter {0} with Loss {1}'.format(index+1,loss_batch))
+
     # show results
     print('VISUALIZING RESULTS')
+    result = sess.run(conv1, feed_dict={data: patient})
     for i in range(0,patient.shape[0]):
         print('Patient {0}'.format(i))
         # show only the first two slices of each patient
         for j in [0,10]:
-            plt.imshow(conv1[i,j,:,:,0], cmap='gray')
+            plt.imshow(result[i,j,:,:,0], cmap='gray')
             plt.show()
