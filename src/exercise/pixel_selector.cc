@@ -55,7 +55,7 @@ class PixelSelectorOp : public OpKernel {
         int pixels = input_tensor1.shape().dim_size(0);
         int num_coord = input_tensor1.shape().dim_size(1);
         auto input1 = input_tensor1.shaped<float,2>({pixels,num_coord}); // Conversion to Eigen::Tensor
-        auto input2 = input_tensor2.flat<float>(); // Conversion to Eigen::Tensor
+        auto input2 = input_tensor2.flat<int16>(); // Conversion to Eigen::Tensor
         int stride_depth = input2(1);
         int stride_width = input2(2);
         int stride_height = input2(3);
