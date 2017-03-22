@@ -5,10 +5,10 @@
 using namespace tensorflow;
 
 REGISTER_OP("PixelSelector")
-    .Input("in: int16")
+    .Input("in: float32")
     .Input("coord: float32")
     .Input("stride: int16")
-    .Output("out: int16")
+    .Output("out: float32")
     /**.SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c)
     {
         ::tensorflow::shape_inference::ShapeHandle out;
@@ -51,11 +51,11 @@ class PixelSelectorOp : public OpKernel {
         int depth = input_tensor.shape().dim_size(1);
         int width = input_tensor.shape().dim_size(2);
         int height = input_tensor.shape().dim_size(3);
-        auto input = input_tensor.shaped<int16,4>({batch,depth,width,height}); // Conversion to Eigen::Tensor
+        auto input = input_tensor.shaped<float,4>({batch,depth,width,height}); // Conversion to Eigen::Tensor
         int pixels = input_tensor1.shape().dim_size(0);
         int num_coord = input_tensor1.shape().dim_size(1);
         auto input1 = input_tensor1.shaped<float,2>({pixels,num_coord}); // Conversion to Eigen::Tensor
-        auto input2 = input_tensor2.flat<int16>(); // Conversion to Eigen::Tensor
+        auto input2 = input_tensor2.flat<float>(); // Conversion to Eigen::Tensor
         int stride_depth = input2(1);
         int stride_width = input2(2);
         int stride_height = input2(3);
@@ -70,7 +70,7 @@ class PixelSelectorOp : public OpKernel {
         OP_REQUIRES_OK(context, context->allocate_output(0, ::tensorflow::TensorShape(dim_sizes),
                                                          &output_tensor));
 
-        auto output = output_tensor->shaped<int16,5>({batch,depth,width,height,pixels}); // Conversion to Eigen::Tensor
+        auto output = output_tensor->shaped<float,5>({batch,depth,width,height,pixels}); // Conversion to Eigen::Tensor
         
         // Copy all elements and create replicas
         for (int i = 0; i < batch; i++)

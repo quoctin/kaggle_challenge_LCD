@@ -6,9 +6,9 @@
 using namespace tensorflow;
 
 REGISTER_OP("ReplicateData")
-    .Input("in: int16")
+    .Input("in: float32")
     .Input("dim: int32")
-    .Output("out: int16")
+    .Output("out: float32")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c)
     {
         ::tensorflow::shape_inference::ShapeHandle output;
@@ -40,7 +40,7 @@ class ReplicateDataOp : public OpKernel {
         int depth = input_tensor.shape().dim_size(1);
         int width = input_tensor.shape().dim_size(2);
         int height = input_tensor.shape().dim_size(3);
-        auto input = input_tensor.shaped<int16,4>({batch,depth,width,height}); // Conversion to Eigen::Tensor
+        auto input = input_tensor.shaped<float,4>({batch,depth,width,height}); // Conversion to Eigen::Tensor
         auto input1 = input_tensor1.scalar<int32>(); // Conversion to Eigen::Tensor
         
         int pixels = input1(0);
@@ -51,7 +51,7 @@ class ReplicateDataOp : public OpKernel {
         OP_REQUIRES_OK(context, context->allocate_output(0, ::tensorflow::TensorShape(dim_sizes),
                                                          &output_tensor));
 
-        auto output = output_tensor->shaped<int16,5>({batch,depth,width,height,pixels}); // Conversion to Eigen::Tensor
+        auto output = output_tensor->shaped<float,5>({batch,depth,width,height,pixels}); // Conversion to Eigen::Tensor
         
         // Copy all elements and create replicas
         for (int i = 0; i < batch; i++)
