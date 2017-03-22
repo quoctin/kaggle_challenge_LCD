@@ -8,46 +8,6 @@ import numpy as np
 
 select_module = tf.load_op_library('/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/src/exercise/pixel_selector.so')
 
-@ops.RegisterGradient("PixelSelector")
-def _pixel_selector_grad(op, grad):
-    """The gradients for 'pixel_selector'.
-        
-        Args:
-        op: The 'pixel_selector' operation we want to differentiate.
-        grad: Gradient with respect to the output of the 'pixel_selector' op.
-        
-        Returns:
-        Gradients with respect to the coordinates of points of interest for 'pixel_selector'.
-        """
-    input = op.inputs[0]
-    coord = op.inputs[1]
-    POINTS = coord.shape[0]
-    strides = op.inputs[2]
-    coord_grad = ops.zeros_like((POINTS,3), tf.float32)
-    back_grad = ops.reshape(grad,[-1])
-    coord_grad_tmp = np.zeros((POINTS,3), np.float32)
-    for i in range(0, POINTS):
-        for j in range(0, 3):
-            coord_tmp = np.zeros((POINTS,3), np.float32)
-            coord_tmp[i,j] = 1.0
-            coord_tmp = coord + coord_tmp
-            tmp_1 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
-            coord_tmp = np.zeros((POINTS,3), np.float32)
-            coord_tmp[i,j] = -1.0
-            coord_tmp = coord + coord_tmp
-            tmp_2 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
-            tmp = ops.subtract(tmp_1,tmp_2)
-            tmp = ops.divide(tmp,2)
-            tmp = ops.multiply(tmp,back_grad)
-            tmp_3 = np.zeros((POINTS,3), np.float32)
-            tmp_3[i,j] = 1.0
-            coord_grad_tmp = coord_grad_tmp + tmp_3*ops.reduce_sum(tmp)
-
-    coord_grad = coord_grad_tmp
-    
-    return [None,coord_grad,None]
-
-
 # declare some variables
 INPUT_FOLDER = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/normalized_data'
 LABEL_FILE = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/stage1_labels.csv'
@@ -61,6 +21,44 @@ STRIDE = [1,2,2,2]
 LEARNING_RATE = 0.001
 MOMENTUM = 0.9
 EPOCHS = 50
+
+@ops.RegisterGradient("PixelSelector")
+def _pixel_selector_grad(op, grad):
+    """The gradients for 'pixel_selector'.
+        
+        Args:
+        op: The 'pixel_selector' operation we want to differentiate.
+        grad: Gradient with respect to the output of the 'pixel_selector' op.
+        
+        Returns:
+        Gradients with respect to the coordinates of points of interest for 'pixel_selector'.
+        """
+    input = op.inputs[0]
+    coord = op.inputs[1]
+    strides = op.inputs[2]
+    coord_grad = ops.zeros_like((NUM_POINTS,3), tf.float32)
+    back_grad = ops.reshape(grad,[-1])
+    coord_grad_tmp = np.zeros((NUM_POINTS,3), np.float32)
+    for i in range(0, NUM_POINTS):
+        for j in range(0, 3):
+            coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
+            coord_tmp[i,j] = 1.0
+            coord_tmp = coord + coord_tmp
+            tmp_1 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
+            coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
+            coord_tmp[i,j] = -1.0
+            coord_tmp = coord + coord_tmp
+            tmp_2 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
+            tmp = ops.subtract(tmp_1,tmp_2)
+            tmp = ops.divide(tmp,2)
+            tmp = ops.multiply(tmp,back_grad)
+            tmp_3 = np.zeros((NUM_POINTS,3), np.float32)
+            tmp_3[i,j] = 1.0
+            coord_grad_tmp = coord_grad_tmp + tmp_3*ops.reduce_sum(tmp)
+
+    coord_grad = coord_grad_tmp
+    
+    return [None,coord_grad,None]
 
 # load labels to a dictionary
 # 362 tumors out of 1397 cases
