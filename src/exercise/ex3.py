@@ -29,12 +29,13 @@ if '.DS_Store' in patients:
 if '._.DS_Store' in patients:
     patients.remove('._.DS_Store')
 
-data = tf.placeholder(tf.int16, [None,114,300,300])
+nslices = 198
+data = tf.placeholder(tf.float32, (None,nslices,300,300))
 
 with tf.Session() as sess:
 
-    patient = np.empty((0, 114, 300, 300))
-    temp = np.empty((1, 114, 300, 300))
+    patient = np.empty((0, nslices, 300, 300), dtype=np.float32)
+    temp = np.empty((1, nslices, 300, 300), dtype=np.float32)
 
     # create dataset of patients and store as a 4D numpy array
     # [batch_size, depth, width, height]
@@ -48,8 +49,8 @@ with tf.Session() as sess:
 
     # using library
     b = tf.constant(num_replicas) # Number of replicas
-    a = replicate_module.replicate_data(patient,b)
-    sess.run(a, feed_dict={data: patient})
+    a = replicate_module.replicate_data(data,b)
+    c = sess.run(a, feed_dict={data: patient})
     print('Shape of the output tensor {0}'.format(a.shape))
 
     # show results
@@ -57,5 +58,5 @@ with tf.Session() as sess:
         print('Patient {0}'.format(i))
         # show only the first two slices of each patient
         for j in range(0,2):
-            plt.imshow(a[i,j,:,:,num_replicas-1].eval(), cmap='gray')
+            plt.imshow(c[i,j,:,:,num_replicas-1], cmap='gray')
             plt.show()
