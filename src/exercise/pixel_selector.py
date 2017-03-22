@@ -1,4 +1,6 @@
-from tensorflow.python import array_ops
+from tensorflow.python.framework import ops
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import math_ops
 
 module = tf.load_op_library('pixel_selector.so')
 
@@ -30,10 +32,10 @@ def _pixel_selector_grad(op, grad):
             coord_tmp = coord
             coord_tmp[i,j] = coord_tmp[i,j] - 1.0
             tmp2 = array_ops.reshape(module.pixel_selector(input,coord_tmp,strides),[-1])
-            tmp = array_ops.subtract(tmp1,tmp2)
-            tmp = array_ops.divide(tmp,2)
-            tmp = array_ops.multiply(tmp,back_grad)
-            coord_grad[i,j] = array_ops.reduce_sum(tmp)
+            tmp = math_ops.subtract(tmp1,tmp2)
+            tmp = math_ops.divide(tmp,2)
+            tmp = math_ops.multiply(tmp,back_grad)
+            coord_grad[i,j] = math_ops.reduce_sum(tmp)
 
     return [None,coord_grad,None]
 

@@ -5,8 +5,8 @@
 using namespace tensorflow;
 
 REGISTER_OP("CopyMat")
-    .Input("in: int16")
-    .Output("out: int16")
+    .Input("in: float32")
+    .Output("out: float32")
     .SetShapeFn([](::tensorflow::shape_inference::InferenceContext* c)
     {
                     c->set_output(0, c->input(0));
@@ -26,14 +26,14 @@ class CopyMatOp : public OpKernel {
         int depth = input_tensor.shape().dim_size(0);
         int width = input_tensor.shape().dim_size(1);
         int height = input_tensor.shape().dim_size(2);
-        auto input = input_tensor.shaped<int16,3>({depth,width,height}); // Conversion to Eigen::Tensor
+        auto input = input_tensor.shaped<float,3>({depth,width,height}); // Conversion to Eigen::Tensor
         
         // Create an output tensor
         Tensor* output_tensor = NULL;
         OP_REQUIRES_OK(context, context->allocate_output(0, input_tensor.shape(),
                                                          &output_tensor));
         
-        auto output = output_tensor->shaped<int16,3>({depth,width,height}); // Conversion to Eigen::Tensor
+        auto output = output_tensor->shaped<float,3>({depth,width,height}); // Conversion to Eigen::Tensor
 
         // Copy all elements
         for (int i = 0; i < depth; i++)

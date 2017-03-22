@@ -47,7 +47,7 @@ with tf.Session() as sess:
 
     # using library
     coord = tf.constant([[0.5,10.4,0.2],[0,-30,0],[100,100,100],[0,0,0]], tf.float32) # Coordinate of points
-stride = tf.constant([1,2,2,2], tf.int16) # Strides
+    stride = tf.constant([1,2,2,2], tf.int16) # Strides
     a = select_module.pixel_selector(patient,coord,stride)
     sess.run(a, feed_dict={data: patient})
 
