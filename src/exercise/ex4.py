@@ -27,14 +27,13 @@ if '.DS_Store' in patients:
 if '._.DS_Store' in patients:
     patients.remove('._.DS_Store')
 
-nslices = 198
-data = tf.placeholder(tf.float32, (None,nslices,300,300))
+data = tf.placeholder(tf.int16, [None,114,300,300])
 
 with tf.Session() as sess:
 
 
-    patient = np.empty((0, nslices, 300, 300), dtype=np.float32)
-    temp = np.empty((1, nslices, 300, 300), dtype=np.float32)
+    patient = np.empty((0, 114, 300, 300))
+    temp = np.empty((1, 114, 300, 300))
     
     # create dataset of patients and store as a 4D numpy array
     # [batch_size, depth, width, height]
@@ -48,11 +47,13 @@ with tf.Session() as sess:
 
     # using library
     coord = tf.constant([[0.5,10.4,0.2],[0,-30,0],[100,100,100],[0,0,0]], tf.float32) # Coordinate of points
-    stride = tf.constant([1,2,2,2], tf.int16) # Strides
-    a = select_module.pixel_selector(data,coord,stride)
-    b = sess.run(a, feed_dict={data: patient})
+stride = tf.constant([1,2,2,2], tf.int16) # Strides
+    a = select_module.pixel_selector(patient,coord,stride)
+    sess.run(a, feed_dict={data: patient})
 
     # show results
+    b = np.asarray(a.eval())
+    print(b.shape)
     print('RESULTS')
     for i in range(0,patient.shape[0]):
         print('Patient {0}'.format(i))
