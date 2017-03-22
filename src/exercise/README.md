@@ -57,3 +57,5 @@ Inputs:
 Outputs:
 **output** is a 5D tensor of size `[batch,depth,width,height,num_points]`
 
+## Ex 5
+Release of Pixel Selector (example for training using this operation)
