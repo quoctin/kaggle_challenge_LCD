@@ -8,8 +8,8 @@ import numpy as np
 select_module = tf.load_op_library('pixel_selector.so')
 
 # declare some variables
-INPUT_FOLDER = '../../data/normalized_data'
-LABEL_FILE = '../../data/stage1_labels.csv'
+INPUT_FOLDER = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/normalized_data'
+LABEL_FILE = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/stage1_labels.csv'
 
 
 # load labels to a dictionary
