@@ -153,7 +153,7 @@ def best_slice_cut(INPUT_FOLDER, OUTPUT_FOLDER, loadHX = 1):
     Mu = np.ones((X.shape[0],1)) * nbins / 2
 
     # find optimal std, mu
-    opt_Mu, opt_sigma = grad_descent(Mu, X, H, std, eta = 10.0, max_iters = 500000)
+    opt_Mu, opt_sigma = grad_descent(Mu, X, H, std, eta = 50.0, max_iters = 20000)
     print('Init sigma = {0} --> opt sigma = {1}'.format(std, opt_sigma))
     
     print('save optimal Mu and sigma')
@@ -272,9 +272,8 @@ def grad_descent(Mu_init, X, H, sigma_init, eta = 1.0, max_iters = 100000):
         Mu = Mu_new
         v = v_new
         if it % 100 == 0:
-            print('\n{0} \t {1} \t {2}'.format(it, np.linalg.norm(g), cost(Mu, X, H, sigma)))
-        if np.linalg.norm(g) < 1.5e-06:
-            break
+            print('\n{0} \t {1} \t {2}'.format(it, np.linalg.norm(g)/g.shape[0], cost(Mu, X, H, sigma)))
+
     return Mu, sigma
 
 def largest_label_volume(im, bg=-1):
