@@ -1,6 +1,7 @@
 import os
 import h5py
 import csv
+import time
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow.python as ops
@@ -122,10 +123,16 @@ optimizer = tf.train.AdamOptimizer().minimize(loss,\
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+
     print('TRAINING')
     for index in range(0, EPOCHS-1):
+        start_time = time.time()
         _, loss_batch = sess.run([optimizer, loss], feed_dict={data: patient, y: label})
-        print('Iter {0} with Loss {1}'.format(index+1,loss_batch))
+        print('Epoch {0} with Loss {1}'.format(index+1,loss_batch))
+        print(coord.eval())
+        print("Epoch time: {0} seconds".format(time.time() - start_time))
+
+    print("Optimization Finished!") # should be around 0.35 after 25 epochs
 
     # show results
     print('VISUALIZING RESULTS')
