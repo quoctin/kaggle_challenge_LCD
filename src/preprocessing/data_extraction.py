@@ -3,8 +3,14 @@ from preprocessing import *
 import h5py
 
 # Some constants
-INPUT_FOLDER = '/home/quoctin/qnapshare/Datasets/DSB2017/stage1'
-OUTPUT_FOLDER = '/home/quoctin/qnapshare/Datasets/DSB2017/extracted_data'
+SERVER = 1
+
+if SERVER == 1:
+    INPUT_FOLDER = '/home/quoctin/qnapshare/Datasets/DSB2017/stage1'
+    OUTPUT_FOLDER = '/home/quoctin/qnapshare/Datasets/DSB2017/extracted_data'
+else:
+    INPUT_FOLDER='../data/exceptions'
+    OUTPUT_FOLDER='../data/extracted_data'
 
 patients = os.listdir(INPUT_FOLDER)
 patients.sort()
@@ -24,4 +30,4 @@ for i,p in enumerate(patients):
     f = h5py.File(OUTPUT_FOLDER + "/" + p + ".hdf5", "w")
     f.attrs['id'] = p
     f.create_dataset('data', data=pix_resampled)
-    f.close
+    f.close()
