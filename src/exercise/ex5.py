@@ -21,7 +21,7 @@ STRIDE = [1,2,2,2]
 
 LEARNING_RATE = 0.01
 MOMENTUM = 0.9
-EPOCHS = 50
+EPOCHS = 100
 
 @ops.RegisterGradient("PixelSelector")
 def _pixel_selector_grad(op, grad):
