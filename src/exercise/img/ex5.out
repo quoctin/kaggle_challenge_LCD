@@ -1,0 +1,61 @@
+LOADING TRAINING DATA
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX instructions, but these are available on your machine and could speed up CPU computations.
+TRAINING
+Iter 1 with Loss 164474.078125
+Iter 2 with Loss 162297.34375
+Iter 3 with Loss 161474.984375
+Iter 4 with Loss 161019.484375
+Iter 5 with Loss 160095.90625
+Iter 6 with Loss 158005.671875
+Iter 7 with Loss 157060.140625
+Iter 8 with Loss 156587.9375
+Iter 9 with Loss 156103.234375
+Iter 10 with Loss 155129.796875
+Iter 11 with Loss 153071.4375
+Iter 12 with Loss 152118.640625
+Iter 13 with Loss 151680.3125
+Iter 14 with Loss 150694.75
+Iter 15 with Loss 148653.046875
+Iter 16 with Loss 147804.125
+Iter 17 with Loss 147336.203125
+Iter 18 with Loss 146325.5
+Iter 19 with Loss 144372.3125
+Iter 20 with Loss 143373.0
+Iter 21 with Loss 142887.125
+Iter 22 with Loss 142392.234375
+Iter 23 with Loss 141353.15625
+Iter 24 with Loss 139438.390625
+Iter 25 with Loss 138438.703125
+Iter 26 with Loss 137939.6875
+Iter 27 with Loss 136893.234375
+Iter 28 with Loss 135173.3125
+Iter 29 with Loss 134110.5625
+Iter 30 with Loss 133607.625
+Iter 31 with Loss 132555.65625
+Iter 32 with Loss 130765.6484375
+Iter 33 with Loss 129699.1015625
+Iter 34 with Loss 129179.96875
+Iter 35 with Loss 128653.5703125
+Iter 36 with Loss 127539.4375
+Iter 37 with Loss 125814.75
+Iter 38 with Loss 124733.2890625
+Iter 39 with Loss 124210.3515625
+Iter 40 with Loss 123057.9765625
+Iter 41 with Loss 121571.03125
+Iter 42 with Loss 120431.3359375
+Iter 43 with Loss 119895.4375
+Iter 44 with Loss 118759.9140625
+Iter 45 with Loss 117182.6875
+Iter 46 with Loss 116015.0
+Iter 47 with Loss 115454.5
+Iter 48 with Loss 114900.7265625
+Iter 49 with Loss 113681.3828125
+VISUALIZING RESULTS
+Patient 0
+Patient 1
+Patient 2
+Patient 3
+Patient 4
+Patient 5
