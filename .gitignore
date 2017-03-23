@@ -1,1 +1,3 @@
-data/normalized_data/*.hdf5
+.gitignore
+data/preprocessed_data/*.hdf5
+src/exercise/*.so
