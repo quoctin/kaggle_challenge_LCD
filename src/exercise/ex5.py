@@ -19,7 +19,7 @@ WIDTH = 300
 HEIGHT = 300
 STRIDE = [1,2,2,2]
 
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.1
 MOMENTUM = 0.9
 EPOCHS = 50
 
@@ -118,7 +118,7 @@ out = tf.reduce_sum(conv1,[1,2,3])
 entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=out)
 loss = tf.reduce_mean(entropy)
 global_step = tf.Variable(0, dtype=tf.int32, trainable=False)
-optimizer = tf.train.AdamOptimizer().minimize(loss,\
+optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(loss,\
             global_step=global_step)
 
 with tf.Session() as sess:
