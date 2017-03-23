@@ -1,3 +1,4 @@
 .gitignore
 data/preprocessed_data/*.hdf5
 src/exercise/*.so
+.vscode
