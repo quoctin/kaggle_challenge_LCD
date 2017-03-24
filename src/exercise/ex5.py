@@ -100,7 +100,7 @@ for i,p in enumerate(patients):
 
 
 # COMPUTATIONAL GRAPH
-initial = tf.truncated_normal([NUM_POINTS,3], stddev=10.0)
+initial = tf.truncated_normal([NUM_POINTS,3], stddev=2.0)
 coord = tf.Variable(initial) # Coordinate of points
 stride = tf.constant(STRIDE, tf.int16) # Strides
 data = tf.placeholder(tf.float32, (None,SLICES, WIDTH, HEIGHT))
