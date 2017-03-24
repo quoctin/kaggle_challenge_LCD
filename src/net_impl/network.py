@@ -288,27 +288,12 @@ def main():
             #print("Epoch time: {0} seconds".format(time.time() - start_time))
 
             # test the model
-            #accuracy = test_model(sess, X, max_pool, test_batch_size=10)
-            #print('Iteration {0} with accuracy {1}'.format(index+1, accuracy))
+            accuracy = test_model(sess, X, max_pool, test_batch_size=10)
+            print('Iteration {0} with accuracy {1}'.format(index+1, accuracy))
 
             # visualize output after SKIP_STEP
             if (index+1) % SKIP_STEP == 0:
                 visualize_output(sess, X, conv1, weighted_gaussian, index)
-
-            # show results after 10 iterations
-            # if (index+1) % SKIP_STEP == 0:
-            #     print('VISUALIZING RESULTS')
-            #     # visualize 5 patients
-            #     [data, labels, _] = next_training_batch(batch_size=5,\
-            #                                         batch_offset=0, slices=SLICES)
-            #     result = sess.run(sum_out, feed_dict={X: data})
-            #     for i in range(0,3):
-            #         for j in range(50,53):
-            #             plt.imshow(result[i,j,:,:,0], cmap='gray')
-            #             #plt.show()
-            #             fname = 'iter_' + str(index+1) + '_patient_' + str(i+1) + '_slice_' + str(j+1) + '.png'
-            #             plt.savefig('fig/'+fname)
-
 
             # update the global_batch_offset  
             sess.run(global_batch_offset.assign(batch_offset))
