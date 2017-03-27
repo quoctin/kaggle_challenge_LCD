@@ -10,11 +10,11 @@ import numpy as np
 
 select_module = tf.load_op_library('./pixel_selector.so')
 
-# declare some variables
-INPUT_FOLDER = '../../data/normalized_data'
+# declare some variabless
+INPUT_FOLDER = '../../../Datasets/small_kaggle'
 LABEL_FILE = '../../data/stage1_labels.csv'
 
-SLICES = 198
+SLICES = 141
 NUM_POINTS = 5
 WIDTH = 300
 HEIGHT = 300
@@ -90,10 +90,12 @@ print('LOADING TRAINING DATA')
 for i,p in enumerate(patients):
     f = h5py.File(INPUT_FOLDER + "/" + patients[i], "r")
     temp[0,:,:,:] = f['data'][()]
-    patient = np.append(patient, temp, axis=0)
     f.close()
     str = patients[i]
     str = str.replace(".hdf5","")
+    if not (str in labels.keys()):
+	continue
+    patient = np.append(patient, temp, axis=0)
     label = np.append(label, [[labels[str]]], axis=0)
 # +++++++++++++++++++++++++++++++++++++++++
 # 'patient' and 'label' are used as dataset
