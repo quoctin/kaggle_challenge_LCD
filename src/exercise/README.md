@@ -59,3 +59,6 @@ Outputs:
 
 ## Ex 5
 Release of Pixel Selector (example for training using this operation)
+
+## Ex 6
+Release of Pixel Selector for GPU (still debugging) + modifications for compatibility with Tensorflow v.1.0.1
