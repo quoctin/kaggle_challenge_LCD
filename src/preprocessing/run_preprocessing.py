@@ -1,6 +1,7 @@
 import os
 from preprocessing import *
 import matplotlib.pyplot as plt
+import numpy as np
 plt.close("all")
 
 # Some constants
@@ -24,7 +25,7 @@ print('There are {0} patients in the folder.'.format(len(patients)))
 #                           Find best slice cut                          #
 #------------------------------------------------------------------------#
 
-best_slice_cut(INPUT_FOLDER, OUTPUT_FOLDER, loadHX = 0)
+#best_slice_cut(INPUT_FOLDER, OUTPUT_FOLDER, loadHX = 0)
 
 #------------------------------------------------------------------------#
 #                  Lung segmentation and normalize data                  #
@@ -44,13 +45,13 @@ new_sizes = np.zeros((len(patients), 3))
 for i,p in enumerate(patients):
     # save resampled data
     f = h5py.File(INPUT_FOLDER + "/" + p, "r")
-    data = f['data']
+    data = f['data'][()]
     id = f.attrs['id']
-    f.close
+    f.close()
 
     # cut the slides not containing lungs
     data = data[finds[i,0]:finds[i,1], :, :]
-
+    
     # lung segmentation
     segmented_data = segment_lung_mask(data)
     segmented_data = segmented_data*data
@@ -62,6 +63,7 @@ for i,p in enumerate(patients):
 
     # normalize to [0,1] and 0.25 mean
     ndata = zero_center(normalize(ndata))
+    ndata = ndata.astype(np.float32)
 
     print('\nProcessing {0}: dest. size = {1}\n'.format(p, ndata.shape))
 
