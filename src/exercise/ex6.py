@@ -1,19 +1,20 @@
+# Modifications for Tensorflow 1.0.1
+
 import os
 import h5py
 import csv
 import time
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow.python as ops
 import numpy as np
 
-select_module = tf.load_op_library('/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/src/exercise/pixel_selector.so')
+select_module = tf.load_op_library('./pixel_selector.so')
 
-# declare some variables
-INPUT_FOLDER = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/normalized_data'
-LABEL_FILE = '/Users/emanuele/Google Drive/Dottorato/Software/kaggle_challenge_LCD/data/stage1_labels.csv'
+# declare some variabless
+INPUT_FOLDER = '../../../Datasets/small_kaggle'
+LABEL_FILE = '../../data/stage1_labels.csv'
 
-SLICES = 198
+SLICES = 141
 NUM_POINTS = 5
 WIDTH = 300
 HEIGHT = 300
@@ -23,7 +24,7 @@ LEARNING_RATE = 0.01
 MOMENTUM = 0.9
 EPOCHS = 100
 
-@ops.RegisterGradient("PixelSelector")
+@tf.RegisterGradient("PixelSelector")
 def _pixel_selector_grad(op, grad):
     """The gradients for 'pixel_selector'.
         
@@ -37,25 +38,25 @@ def _pixel_selector_grad(op, grad):
     input = op.inputs[0]
     coord = op.inputs[1]
     strides = op.inputs[2]
-    coord_grad = ops.zeros_like((NUM_POINTS,3), tf.float32)
-    back_grad = ops.reshape(grad,[-1])
+    coord_grad = tf.zeros_like((NUM_POINTS,3), tf.float32)
+    back_grad = tf.reshape(grad,[-1])
     coord_grad_tmp = np.zeros((NUM_POINTS,3), np.float32)
     for i in range(0, NUM_POINTS):
         for j in range(0, 3):
             coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
             coord_tmp[i,j] = 1.0
             coord_tmp = coord + coord_tmp
-            tmp_1 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
+            tmp_1 = tf.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
             coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
             coord_tmp[i,j] = -1.0
             coord_tmp = coord + coord_tmp
-            tmp_2 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
-            tmp = ops.subtract(tmp_1,tmp_2)
-            tmp = ops.divide(tmp,2)
-            tmp = ops.multiply(tmp,back_grad)
+            tmp_2 = tf.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
+            tmp = tf.subtract(tmp_1,tmp_2)
+            tmp = tf.divide(tmp,2)
+            tmp = tf.multiply(tmp,back_grad)
             tmp_3 = np.zeros((NUM_POINTS,3), np.float32)
             tmp_3[i,j] = 1.0
-            coord_grad_tmp = coord_grad_tmp + tmp_3*ops.reduce_sum(tmp)
+            coord_grad_tmp = coord_grad_tmp + tmp_3*tf.reduce_sum(tmp)
 
     coord_grad = coord_grad_tmp
     
@@ -89,10 +90,12 @@ print('LOADING TRAINING DATA')
 for i,p in enumerate(patients):
     f = h5py.File(INPUT_FOLDER + "/" + patients[i], "r")
     temp[0,:,:,:] = f['data'][()]
-    patient = np.append(patient, temp, axis=0)
     f.close()
     str = patients[i]
     str = str.replace(".hdf5","")
+    if not (str in labels.keys()):
+	continue
+    patient = np.append(patient, temp, axis=0)
     label = np.append(label, [[labels[str]]], axis=0)
 # +++++++++++++++++++++++++++++++++++++++++
 # 'patient' and 'label' are used as dataset

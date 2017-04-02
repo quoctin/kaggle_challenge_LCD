@@ -110,4 +110,4 @@ class PixelSelectorOp : public OpKernel {
     }
 };
 
-REGISTER_KERNEL_BUILDER(Name("PixelSelector").Device(DEVICE_CPU), PixelSelectorOp);
+REGISTER_KERNEL_BUILDER(Name("PixelSelector").Device(DEVICE_GPU), PixelSelectorOp);
