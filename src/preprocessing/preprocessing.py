@@ -44,8 +44,7 @@ def convert_pix2hu(slices):
     image = image.astype(np.int16)
     
     # Set outside-of-scan pixels to 0, i.e., the air
-    outside_image = image.min()
-    image[image == outside_image] = 0
+    image[image == -2000] = 0
     
     # Convert to Hounsfield units (HU)
     for slice_number in range(len(slices)):
@@ -284,15 +283,17 @@ def largest_label_volume(im, bg=-1):
     vals = vals[vals != bg]
     
     if len(counts) > 0:
-        return vals[np.argmax(counts)]
+        return vals, counts, vals[np.argmax(counts)]
     else:
-        return None
+        return None,None,None
 
-def segment_lung_mask(image, fill_lung_structures=True):
+def segment_lung_mask(input_img, fill_lung_structures=True):
     
     # not actually binary, but 1 and 2. 
     # 0 is treated as background, which we do not want
     # image[image == -1024] = 0
+    image = np.copy(input_img)
+
     binary_image = np.array(image > -320, dtype=np.int8)+1
     binary_image = morphology.closing(binary_image)
     labels = measure.label(binary_image)
@@ -325,7 +326,7 @@ def segment_lung_mask(image, fill_lung_structures=True):
         for i, axial_slice in enumerate(binary_image):
             axial_slice = axial_slice - 1
             labeling = measure.label(axial_slice)
-            l_max = largest_label_volume(labeling, bg=0)
+            _,_,l_max = largest_label_volume(labeling, bg=0)
             
             if l_max is not None: #This slice contains some lung
                 binary_image[i][labeling != l_max] = 1
@@ -337,8 +338,14 @@ def segment_lung_mask(image, fill_lung_structures=True):
     # Remove other air pockets insided body
     labels = measure.label(binary_image, background=0)
 
-    l_max = largest_label_volume(labels, bg=0)
+    vals,counts,l_max = largest_label_volume(labels, bg=0)
     if l_max is not None:
+        if counts.shape[0] > 2:
+            temp = np.partition(-counts, 2)
+            top_two = -temp[:2]
+            if top_two[1] > 0.8*top_two[0]:
+                l_second_max = vals[np.where(counts==top_two[1])][0]
+                labels[labels == l_second_max] = l_max
         binary_image[labels != l_max] = 0
  
     return binary_image
