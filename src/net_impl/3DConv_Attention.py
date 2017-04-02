@@ -358,15 +358,15 @@ def main():
 
             start_time = time.time()
             _, loss_batch, logits = sess.run([optimizer, loss, params['logits']], feed_dict={X: data, Y: labels})
+            loss_all.append(loss_batch)
+            
             print('\n::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n')
             print('Interation {0}\n'.format(index+1))            
-            print('\tLoss: {0}\n'.format(loss_batch))
+            print('\tAverage Loss: {0}\n'.format(np.average(np.asarray(loss_all))))
             print('\tLogits: \n{0}\n'.format(logits))
             print('\tLabels: \n{0}\n'.format(labels))
             print("\tTime: {0} sec\n".format(time.time() - start_time))
             
-            loss_all.append(loss_batch)
-
             # test the model
             if (index+1) % SKIP_STEP == 0:
                 accuracy = test_model(sess, X, params, test_batch_size=BATCH_SIZE)
