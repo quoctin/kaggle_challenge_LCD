@@ -2,9 +2,8 @@ from __future__ import print_function
 import os
 import time
 import h5py
-import tensorflow as tf
-import tensorflow.python as ops
 import numpy as np
+import tensorflow as tf
 import csv
 import matplotlib.pyplot as plt
 
@@ -19,11 +18,11 @@ PX_SEL_PATH = os.path.abspath('''../exercise/pixel_selector.so''')
 INPUT_DATA = os.path.abspath('''../../data/preprocessed_data''')
 LABEL_FILE = os.path.abspath('''../../data/stage1_labels.csv''')
 CHECKPOINT_PATH = os.path.abspath('checkpoints')
-LEARNING_RATE = 0.001
-BATCH_SIZE = 5
+LEARNING_RATE = 0.00001
+BATCH_SIZE = 10
 SKIP_STEP = 5
 DROPOUT = 0.75
-N_EPOCHS = 20
+N_EPOCHS = 2
 SLICES = 141
 NUM_POINTS = 5
 N_PIPELINE = 1
@@ -34,7 +33,7 @@ select_module = tf.load_op_library(PX_SEL_PATH)
 #-------------------------------------------------------------------------------#
 #                                register gradient                              #   
 #-------------------------------------------------------------------------------#
-@ops.RegisterGradient("PixelSelector")
+@tf.RegisterGradient("PixelSelector")
 def _pixel_selector_grad(op, grad):
     """The gradients for 'pixel_selector'.
         
@@ -45,32 +44,34 @@ def _pixel_selector_grad(op, grad):
         Returns:
         Gradients with respect to the coordinates of points of interest for 'pixel_selector'.
         """
-    input = op.inputs[0]
-    coord = op.inputs[1]
-    strides = op.inputs[2]
-    coord_grad = ops.zeros_like((NUM_POINTS,3), tf.float32)
-    back_grad = ops.reshape(grad,[-1])
-    coord_grad_tmp = np.zeros((NUM_POINTS,3), np.float32)
-    for i in range(0, NUM_POINTS):
-        for j in range(0, 3):
-            coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
-            coord_tmp[i,j] = 1.0
-            coord_tmp = coord + coord_tmp
-            tmp_1 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
-            coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
-            coord_tmp[i,j] = -1.0
-            coord_tmp = coord + coord_tmp
-            tmp_2 = ops.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
-            tmp = ops.subtract(tmp_1,tmp_2)
-            tmp = ops.divide(tmp,2)
-            tmp = ops.multiply(tmp,back_grad)
-            tmp_3 = np.zeros((NUM_POINTS,3), np.float32)
-            tmp_3[i,j] = 1.0
-            coord_grad_tmp = coord_grad_tmp + tmp_3*ops.reduce_sum(tmp)
-
-    coord_grad = coord_grad_tmp
     
-    return [None,coord_grad,None]
+    with tf.control_dependencies([grad.op]):
+        input = op.inputs[0]
+        coord = op.inputs[1]
+        strides = op.inputs[2]
+        coord_grad = tf.zeros_like((NUM_POINTS,3), tf.float32)
+        back_grad = tf.reshape(grad,[-1])
+        coord_grad_tmp = np.zeros((NUM_POINTS,3), np.float32)
+        for i in range(0, NUM_POINTS):
+            for j in range(0, 3):
+                coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
+                coord_tmp[i,j] = 1.0
+                coord_tmp = coord + coord_tmp
+                tmp_1 = tf.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
+                coord_tmp = np.zeros((NUM_POINTS,3), np.float32)
+                coord_tmp[i,j] = -1.0
+                coord_tmp = coord + coord_tmp
+                tmp_2 = tf.reshape(select_module.pixel_selector(input,coord_tmp,strides),[-1])
+                tmp = tf.subtract(tmp_1,tmp_2)
+                tmp = tf.divide(tmp,2)
+                tmp = tf.multiply(tmp,back_grad)
+                tmp_3 = np.zeros((NUM_POINTS,3), np.float32)
+                tmp_3[i,j] = 1.0
+                coord_grad_tmp = coord_grad_tmp + tmp_3*tf.reduce_sum(tmp)
+
+        coord_grad = coord_grad_tmp
+        
+        return [None,coord_grad,None]
 
 #-------------------------------------------------------------------------------#
 #                             network definition                                #  
@@ -204,7 +205,7 @@ def test_model(sess, X, logits, test_epochs=1, test_batch_size=5):
                                             batch_offset=batch_offset, slices=SLICES)
         logits_batch = sess.run(logits, feed_dict={X: data})
         b_preds = (logits_batch > 0.0)
-        b_labels = (labels != 0.0)
+        b_labels = (labels > 0.0)
         total_correct_pred += np.sum(1.0*(b_labels == b_preds))
 
     return total_correct_pred/(test_epochs*test_batch_size*n_batches)
@@ -247,6 +248,7 @@ def visualize_output(sess, X, conv1, weighted_gaussian, index):
 
             fname = 'iter_' + str(index+1) + '_patient_' + str(i+1) + '_slice_' + str(j+1) + '.png'
             plt.savefig('fig/'+fname)
+            plt.close()
 
 
 def main():
@@ -284,12 +286,12 @@ def main():
                                             batch_offset=batch_offset, slices=SLICES)
             start_time = time.time()
             _, loss_batch = sess.run([optimizer, loss], feed_dict={X: data, Y: labels})
-            print('Iteration {0} with Loss {1}'.format(index+1, loss_batch))
-            #print("Epoch time: {0} seconds".format(time.time() - start_time))
+            print('Iteration {0} with Loss {1}\n'.format(index+1, loss_batch))
+            print("Iteration time: {0} seconds\n".format(time.time() - start_time))
 
             # test the model
             accuracy = test_model(sess, X, max_pool, test_batch_size=10)
-            print('Iteration {0} with accuracy {1}'.format(index+1, accuracy))
+            print('Iteration {0} with accuracy {1}\n'.format(index+1, accuracy))
 
             # visualize output after SKIP_STEP
             if (index+1) % SKIP_STEP == 0:
